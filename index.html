@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facebook Ads Profitability Calculator — ইয়াছির কনক</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root[data-theme="dark"]{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--bg4:#1e1e28;
+  --card:#13131a;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text1:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+  --accent:#3b82f6;--accent2:#6366f1;
+  --green:#10b981;--red:#ef4444;--amber:#f59e0b;
+  --shadow:0 8px 32px rgba(0,0,0,0.4);
+  --toggle-bg:#1e1e28;
+}
+:root[data-theme="light"]{
+  --bg:#f0f4ff;--bg2:#e8eef8;--bg3:#ffffff;--bg4:#f0f4ff;
+  --card:#ffffff;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --text1:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --accent:#2563eb;--accent2:#4f46e5;
+  --green:#059669;--red:#dc2626;--amber:#d97706;
+  --shadow:0 4px 24px rgba(0,0,0,0.1);
+  --toggle-bg:#e2e8f0;
+}
+
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);color:var(--text1);
+  font-family:'Syne',sans-serif;
+  min-height:100vh;overflow-x:hidden;
+  transition:background 0.3s,color 0.3s;
+}
+body.bangla,body.bangla *:not(.metric-value):not(.br-val):not(.mv):not(.dc-val):not(.slider-val):not(.input-prefix):not(.input-suffix){
+  font-family:'Hind Siliguri',sans-serif!important;
+}
+
+[data-theme="dark"] body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(59,130,246,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,0.03) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0;
+}
+[data-theme="light"] body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(37,99,235,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,0.04) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0;
+}
+
+.glow-blob{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0;}
+.glow-blob.b1{width:600px;height:600px;top:-200px;left:-200px;opacity:0.12;}
+.glow-blob.b2{width:400px;height:400px;bottom:-100px;right:-100px;opacity:0.10;}
+[data-theme="dark"] .glow-blob.b1{background:#3b82f6;}
+[data-theme="dark"] .glow-blob.b2{background:#6366f1;}
+[data-theme="light"] .glow-blob.b1{background:#93c5fd;}
+[data-theme="light"] .glow-blob.b2{background:#a5b4fc;}
+
+.container{max-width:920px;margin:0 auto;padding:0 20px;position:relative;z-index:1;}
+
+/* TOP BAR */
+header{padding:28px 0 0;position:relative;z-index:2;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:44px;flex-wrap:wrap;gap:14px;}
+
+.logo-mark{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 4px 14px rgba(59,130,246,0.35);}
+.logo-text{font-size:14px;font-weight:700;letter-spacing:0.08em;color:var(--text1);text-transform:uppercase;}
+.logo-sub{font-size:11px;color:var(--text3);letter-spacing:0.04em;margin-top:1px;}
+
+.top-controls{display:flex;align-items:center;gap:10px;}
+
+/* THEME TOGGLE */
+.theme-toggle{
+  width:44px;height:24px;border-radius:30px;border:none;cursor:pointer;
+  background:var(--toggle-bg);border:1px solid var(--border2);
+  position:relative;transition:background 0.3s;padding:0;
+}
+.theme-toggle::after{
+  content:'';position:absolute;top:3px;left:3px;
+  width:16px;height:16px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  transition:transform 0.3s;box-shadow:0 1px 4px rgba(0,0,0,0.3);
+}
+[data-theme="light"] .theme-toggle::after{transform:translateX(20px);}
+.theme-icon{font-size:13px;position:absolute;top:50%;transform:translateY(-50%);transition:opacity 0.3s;}
+.theme-icon.sun{right:5px;opacity:1;}
+.theme-icon.moon{left:5px;opacity:1;}
+[data-theme="light"] .theme-icon.sun{opacity:0;}
+[data-theme="dark"] .theme-icon.moon{opacity:0;}
+
+/* LANG SWITCHER */
+.lang-switch{display:flex;background:var(--bg3);border:1px solid var(--border2);border-radius:40px;padding:4px;gap:2px;}
+.lang-btn{padding:7px 18px;border-radius:30px;border:none;background:transparent;color:var(--text2);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.25s;letter-spacing:0.03em;}
+.lang-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 2px 12px rgba(59,130,246,0.35);}
+
+/* HERO */
+.hero{text-align:center;padding:16px 0 44px;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.25);border-radius:30px;padding:6px 16px;font-size:12px;font-weight:600;color:#93c5fd;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:20px;}
+.hero-badge::before{content:'●';color:var(--green);font-size:9px;}
+.hero h1{font-size:clamp(1.9rem,5vw,3.4rem);font-weight:800;line-height:1.1;letter-spacing:-0.02em;margin-bottom:14px;}
+.hero h1 .grad1{background:linear-gradient(135deg,var(--text1) 0%,var(--text2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero h1 .grad2{background:linear-gradient(135deg,#60a5fa,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero p{font-size:15px;color:var(--text2);max-width:520px;margin:0 auto 28px;line-height:1.7;}
+
+/* CURRENCY BAR */
+.currency-bar{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:44px;}
+.cur-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:'DM Mono',monospace;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow);}
+.cur-btn:hover{border-color:var(--accent);color:var(--text1);}
+.cur-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 16px rgba(59,130,246,0.3);}
+
+/* MAIN GRID */
+.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+@media(max-width:640px){.main-grid{grid-template-columns:1fr;}}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:26px;transition:border-color 0.3s,box-shadow 0.3s;box-shadow:var(--shadow);}
+.card:hover{border-color:var(--border2);}
+.card-title{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.card-title::before{content:'';display:block;width:3px;height:14px;background:linear-gradient(var(--accent),var(--accent2));border-radius:2px;}
+
+/* FIELDS */
+.field-group{display:flex;flex-direction:column;gap:14px;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:12px;font-weight:600;color:var(--text2);letter-spacing:0.04em;text-transform:uppercase;}
+.field .hint{font-size:11px;color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0;}
+
+.input-wrap{display:flex;align-items:center;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;overflow:hidden;transition:border-color 0.2s,box-shadow 0.2s;}
+.input-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,0.12);}
+.input-prefix{padding:0 12px;font-family:'DM Mono',monospace;font-size:14px;color:var(--text3);background:var(--bg4);border-right:1px solid var(--border);height:100%;display:flex;align-items:center;min-width:44px;justify-content:center;font-weight:500;}
+.input-suffix{padding:0 12px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text3);background:var(--bg4);border-left:1px solid var(--border);}
+.input-wrap input{flex:1;padding:11px 14px;background:transparent;border:none;color:var(--text1);font-family:'DM Mono',monospace;font-size:15px;font-weight:500;outline:none;width:100%;}
+.input-wrap input::placeholder{color:var(--text3);}
+
+/* SLIDER */
+.slider-wrap{display:flex;flex-direction:column;gap:8px;}
+.slider-row{display:flex;align-items:center;gap:12px;}
+input[type="range"]{flex:1;-webkit-appearance:none;height:4px;background:var(--bg4);border-radius:4px;outline:none;cursor:pointer;}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 8px rgba(59,130,246,0.5);cursor:pointer;transition:transform 0.15s;}
+input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.15);}
+.slider-val{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--accent);min-width:40px;text-align:right;}
+
+/* RESULTS CARD */
+.results-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px;margin-bottom:18px;box-shadow:var(--shadow);}
+.results-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:22px;}
+
+.big-metric{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:20px;position:relative;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s;}
+.big-metric:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(59,130,246,0.15);}
+.big-metric.highlight{background:linear-gradient(135deg,rgba(59,130,246,0.1),rgba(99,102,241,0.1));border-color:rgba(59,130,246,0.3);}
+.big-metric.highlight::after{content:'';position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.metric-icon{font-size:20px;margin-bottom:10px;display:block;}
+.metric-label{font-size:11px;font-weight:700;letter-spacing:0.08em;color:var(--text3);text-transform:uppercase;margin-bottom:6px;}
+.metric-value{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;color:var(--text1);line-height:1;margin-bottom:4px;}
+.big-metric.highlight .metric-value{color:#60a5fa;}
+.metric-desc{font-size:11px;color:var(--text3);line-height:1.5;}
+
+/* INFO STRIP */
+.info-strip{background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:13px 17px;font-size:13px;color:#93c5fd;line-height:1.6;margin-bottom:22px;}
+[data-theme="light"] .info-strip{background:rgba(37,99,235,0.06);border-color:rgba(37,99,235,0.2);color:#1d4ed8;}
+.info-strip strong{color:#bfdbfe;font-weight:600;}
+[data-theme="light"] .info-strip strong{color:#1e40af;}
+
+/* MINI METRICS */
+.mini-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px;}
+.mini-metric{background:var(--bg3);border-radius:10px;padding:14px 16px;border:1px solid var(--border);}
+.mini-metric .ml{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;}
+.mini-metric .mv{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--text1);}
+.mini-metric .mv.green{color:var(--green);}
+.mini-metric .mv.red{color:var(--red);}
+
+/* BREAKDOWN */
+.breakdown-title{font-size:12px;font-weight:700;letter-spacing:0.08em;color:var(--text3);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.breakdown-title::before{content:'';display:block;width:3px;height:14px;background:linear-gradient(var(--accent),var(--accent2));border-radius:2px;}
+.breakdown-rows{display:flex;flex-direction:column;gap:0;}
+.breakdown-row{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;border-radius:8px;transition:background 0.15s;font-size:14px;}
+.breakdown-row:hover{background:var(--bg3);}
+.breakdown-row .br-label{color:var(--text2);display:flex;align-items:center;gap:8px;}
+.breakdown-row .br-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.breakdown-row .br-val{font-family:'DM Mono',monospace;font-weight:500;color:var(--text1);}
+.breakdown-row .br-val.deduct{color:var(--red);}
+.breakdown-row .br-val.profit{color:var(--green);}
+.breakdown-row.total-row{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;margin-top:8px;font-weight:600;}
+.breakdown-row.total-row .br-label{color:var(--text1);}
+.breakdown-row.total-row .br-val{font-size:16px;}
+
+/* CHART */
+.chart-section{display:grid;grid-template-columns:180px 1fr;gap:24px;align-items:center;margin-top:22px;padding-top:22px;border-top:1px solid var(--border);}
+@media(max-width:520px){.chart-section{grid-template-columns:1fr;}}
+.donut-wrap{position:relative;width:160px;height:160px;margin:0 auto;}
+.donut-wrap svg{transform:rotate(-90deg);}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.donut-center .dc-val{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;color:var(--green);}
+.donut-center .dc-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;}
+.chart-legend{display:flex;flex-direction:column;gap:10px;}
+.legend-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.legend-item .li-name{flex:1;}
+.legend-item .li-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--text1);font-weight:500;}
+.legend-item .li-pct{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-left:4px;}
+
+/* FOOTER */
+footer{text-align:center;padding:36px 0 28px;color:var(--text3);font-size:12px;border-top:1px solid var(--border);margin-top:36px;}
+footer .built{margin-bottom:5px;font-size:13px;color:var(--text2);}
+footer .name-highlight{color:var(--accent);font-weight:600;}
+
+/* ANIMATIONS */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.card,.results-card{animation:fadeInUp 0.45s ease both;}
+.card:nth-child(2){animation-delay:0.07s;}
+.results-card{animation-delay:0.12s;}
+</style>
+</head>
+<body>
+
+<div class="glow-blob b1"></div>
+<div class="glow-blob b2"></div>
+
+<div class="container">
+  <header>
+    <div class="top-bar">
+      <div class="logo-mark">
+        <div class="logo-icon">📊</div>
+        <div>
+          <div class="logo-text" data-en="AdProfit Calc" data-bn="অ্যাড প্রফিট ক্যালক">AdProfit Calc</div>
+          <div class="logo-sub" data-en="by ইয়াছির কনক" data-bn="ইয়াছির কনক কর্তৃক">by ইয়াছির কনক</div>
+        </div>
+      </div>
+      <div class="top-controls">
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+          <span class="theme-icon sun">☀️</span>
+          <span class="theme-icon moon">🌙</span>
+        </button>
+        <div class="lang-switch">
+          <button class="lang-btn active" onclick="setLang('en')">English</button>
+          <button class="lang-btn" onclick="setLang('bn')">বাংলা</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-badge" data-en="Live Calculator · Real-time Results" data-bn="লাইভ ক্যালকুলেটর · রিয়েল-টাইম ফলাফল">Live Calculator · Real-time Results</div>
+    <h1>
+      <span class="grad2" data-en="Facebook Ads" data-bn="ফেসবুক অ্যাডস">Facebook Ads</span><br>
+      <span class="grad1" data-en="Profitability Calculator" data-bn="লাভজনকতা ক্যালকুলেটর">Profitability Calculator</span>
+    </h1>
+    <p data-en="Enter your product details → get your Max CPS &amp; Min ROAS instantly. Built for real Facebook Ads marketers." data-bn="আপনার পণ্যের তথ্য দিন → সাথে সাথে পান সর্বোচ্চ CPS ও সর্বনিম্ন ROAS। ফেসবুক অ্যাডস মার্কেটারদের জন্য তৈরি।">Enter your product details → get your Max CPS &amp; Min ROAS instantly. Built for real Facebook Ads marketers.</p>
+
+    <div class="currency-bar">
+      <button class="cur-btn active" onclick="setCur('৳','BDT',this)">৳ BDT</button>
+      <button class="cur-btn" onclick="setCur('$','USD',this)">$ USD</button>
+      <button class="cur-btn" onclick="setCur('₹','INR',this)">₹ INR</button>
+      <button class="cur-btn" onclick="setCur('€','EUR',this)">€ EUR</button>
+      <button class="cur-btn" onclick="setCur('£','GBP',this)">£ GBP</button>
+    </div>
+  </section>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title" data-en="Product Details" data-bn="পণ্যের তথ্য">Product Details</div>
+      <div class="field-group">
+        <div class="field">
+          <label data-en="Product Cost (COGS)" data-bn="পণ্যের কস্ট (COGS)">Product Cost (COGS)</label>
+          <div class="input-wrap">
+            <span class="input-prefix sym">৳</span>
+            <input type="number" id="cogs" value="500" min="0" oninput="calc()">
+          </div>
+        </div>
+        <div class="field">
+          <label data-en="Selling Price" data-bn="বিক্রয় মূল্য">Selling Price</label>
+          <div class="input-wrap">
+            <span class="input-prefix sym">৳</span>
+            <input type="number" id="price" value="1200" min="0" oninput="calc()">
+          </div>
+        </div>
+        <div class="field">
+          <label data-en="Other Costs Per Order" data-bn="প্রতি অর্ডার অন্যান্য খরচ">Other Costs Per Order</label>
+          <span class="hint" data-en="delivery, packaging, etc." data-bn="ডেলিভারি, প্যাকেজিং ইত্যাদি">delivery, packaging, etc.</span>
+          <div class="input-wrap">
+            <span class="input-prefix sym">৳</span>
+            <input type="number" id="other" value="80" min="0" oninput="calc()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" data-en="Rate Settings" data-bn="রেট সেটিংস">Rate Settings</div>
+      <div class="field-group">
+        <div class="field">
+          <label data-en="Return / Cancel Rate" data-bn="রিটার্ন / বাতিল হার">Return / Cancel Rate</label>
+          <span class="hint" data-en="% of orders returned or cancelled" data-bn="কত % অর্ডার ফেরত বা বাতিল হয়">% of orders returned or cancelled</span>
+          <div class="slider-wrap">
+            <div class="slider-row">
+              <input type="range" id="returnRate" min="0" max="60" value="15" step="1" oninput="syncSlider('returnRate','returnInput','rrv')">
+              <span class="slider-val" id="rrv">15%</span>
+            </div>
+            <div class="input-wrap">
+              <input type="number" id="returnInput" value="15" min="0" max="100" oninput="syncInput('returnInput','returnRate','rrv')">
+              <span class="input-suffix">%</span>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label data-en="Target Profit Margin" data-bn="লক্ষ্য লাভের মার্জিন">Target Profit Margin</label>
+          <span class="hint" data-en="% of effective revenue you want as profit" data-bn="কার্যকর রেভিনিউর কত % লাভ চান">% of effective revenue you want as profit</span>
+          <div class="slider-wrap">
+            <div class="slider-row">
+              <input type="range" id="marginRate" min="1" max="60" value="10" step="1" oninput="syncSlider('marginRate','marginInput','mrv')">
+              <span class="slider-val" id="mrv">10%</span>
+            </div>
+            <div class="input-wrap">
+              <input type="number" id="marginInput" value="10" min="1" max="100" oninput="syncInput('marginInput','marginRate','mrv')">
+              <span class="input-suffix">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="results-card">
+    <div class="results-top">
+      <div class="big-metric highlight">
+        <span class="metric-icon">🎯</span>
+        <div class="metric-label" data-en="Max Cost Per Sale" data-bn="সর্বোচ্চ কস্ট পার সেল">Max Cost Per Sale</div>
+        <div class="metric-value" id="maxCPS">—</div>
+        <div class="metric-desc" data-en="Ceiling ad spend per conversion to hit your target margin after returns" data-bn="রিটার্নের পরে লক্ষ্য মার্জিন অর্জনে সর্বোচ্চ বিজ্ঞাপন খরচ">Ceiling ad spend per conversion</div>
+      </div>
+      <div class="big-metric highlight">
+        <span class="metric-icon">📈</span>
+        <div class="metric-label" data-en="Minimum ROAS" data-bn="সর্বনিম্ন ROAS">Minimum ROAS</div>
+        <div class="metric-value" id="minROAS">—</div>
+        <div class="metric-desc" id="roasDesc" data-en="Every ৳1 of ad spend must return at least this much" data-bn="প্রতি ৳১ বিজ্ঞাপনে কমপক্ষে এতটুকু রিটার্ন চাই">Every ৳1 of ad spend must return at least this much</div>
+      </div>
+    </div>
+
+    <div class="info-strip" id="infoStrip">Calculating...</div>
+
+    <div class="mini-metrics">
+      <div class="mini-metric">
+        <div class="ml" data-en="Effective Revenue" data-bn="কার্যকর রেভিনিউ">Effective Revenue</div>
+        <div class="mv" id="effRev">—</div>
+      </div>
+      <div class="mini-metric">
+        <div class="ml" data-en="Return Loss / Order" data-bn="প্রতি অর্ডারে ক্ষতি">Return Loss / Order</div>
+        <div class="mv red" id="retLoss">—</div>
+      </div>
+      <div class="mini-metric">
+        <div class="ml" data-en="Net Margin (no ads)" data-bn="নেট মার্জিন (বিজ্ঞাপন ছাড়া)">Net Margin (no ads)</div>
+        <div class="mv green" id="netMargin">—</div>
+      </div>
+    </div>
+
+    <div class="breakdown-title" data-en="Profit Breakdown Per Order" data-bn="প্রতি অর্ডারে লাভ-ক্ষতির বিস্তারিত">Profit Breakdown Per Order</div>
+    <div class="breakdown-rows">
+      <div class="breakdown-row">
+        <span class="br-label"><span class="br-dot" style="background:#60a5fa"></span><span data-en="Selling price" data-bn="বিক্রয় মূল্য">Selling price</span></span>
+        <span class="br-val" id="bd-price">—</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="br-label"><span class="br-dot" style="background:#f87171"></span><span id="bd-retlabel" data-en="− Return / cancel loss" data-bn="− রিটার্ন / বাতিল ক্ষতি">− Return / cancel loss</span></span>
+        <span class="br-val deduct" id="bd-ret">—</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="br-label"><span class="br-dot" style="background:#34d399"></span><span data-en="= Effective revenue/order" data-bn="= কার্যকর রেভিনিউ/অর্ডার">= Effective revenue/order</span></span>
+        <span class="br-val" id="bd-eff">—</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="br-label"><span class="br-dot" style="background:#fbbf24"></span><span data-en="− Product cost (COGS)" data-bn="− পণ্যের কস্ট (COGS)">− Product cost (COGS)</span></span>
+        <span class="br-val deduct" id="bd-cogs">—</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="br-label"><span class="br-dot" style="background:#a78bfa"></span><span data-en="− Other costs" data-bn="− অন্যান্য খরচ">− Other costs</span></span>
+        <span class="br-val deduct" id="bd-other">—</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="br-label"><span class="br-dot" style="background:#38bdf8"></span><span data-en="− Max ad spend (CPS)" data-bn="− সর্বোচ্চ বিজ্ঞাপন খরচ">− Max ad spend (CPS)</span></span>
+        <span class="br-val deduct" id="bd-cps">—</span>
+      </div>
+      <div class="breakdown-row total-row">
+        <span class="br-label"><span class="br-dot" style="background:#10b981"></span><span data-en="= Target profit" data-bn="= লক্ষ্য লাভ">= Target profit</span></span>
+        <span class="br-val profit" id="bd-profit">—</span>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="donut-wrap">
+        <svg viewBox="0 0 160 160" width="160" height="160">
+          <circle cx="80" cy="80" r="60" fill="none" stroke="#1e1e28" stroke-width="22"/>
+          <circle id="d-retloss" cx="80" cy="80" r="60" fill="none" stroke="#f87171" stroke-width="22" stroke-dasharray="377" stroke-dashoffset="377" style="transition:stroke-dasharray 0.6s,stroke-dashoffset 0.6s;"/>
+          <circle id="d-cogs"    cx="80" cy="80" r="60" fill="none" stroke="#fbbf24" stroke-width="22" stroke-dasharray="377" stroke-dashoffset="377" style="transition:stroke-dasharray 0.6s,stroke-dashoffset 0.6s;"/>
+          <circle id="d-other"  cx="80" cy="80" r="60" fill="none" stroke="#a78bfa" stroke-width="22" stroke-dasharray="377" stroke-dashoffset="377" style="transition:stroke-dasharray 0.6s,stroke-dashoffset 0.6s;"/>
+          <circle id="d-cps"    cx="80" cy="80" r="60" fill="none" stroke="#38bdf8" stroke-width="22" stroke-dasharray="377" stroke-dashoffset="377" style="transition:stroke-dasharray 0.6s,stroke-dashoffset 0.6s;"/>
+          <circle id="d-profit" cx="80" cy="80" r="60" fill="none" stroke="#10b981" stroke-width="22" stroke-dasharray="377" stroke-dashoffset="377" style="transition:stroke-dasharray 0.6s,stroke-dashoffset 0.6s;"/>
+        </svg>
+        <div class="donut-center">
+          <div class="dc-val" id="dc-pct">—</div>
+          <div class="dc-label" data-en="Profit" data-bn="লাভ">Profit</div>
+        </div>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#f87171"></span><span class="li-name" data-en="Return loss" data-bn="রিটার্ন ক্ষতি">Return loss</span><span class="li-val" id="lg-ret">—</span><span class="li-pct" id="lg-ret-p"></span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#fbbf24"></span><span class="li-name" data-en="COGS" data-bn="পণ্যের কস্ট">COGS</span><span class="li-val" id="lg-cogs">—</span><span class="li-pct" id="lg-cogs-p"></span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#a78bfa"></span><span class="li-name" data-en="Other costs" data-bn="অন্যান্য খরচ">Other costs</span><span class="li-val" id="lg-other">—</span><span class="li-pct" id="lg-other-p"></span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#38bdf8"></span><span class="li-name" data-en="Max ad spend" data-bn="সর্বোচ্চ বিজ্ঞাপন">Max ad spend</span><span class="li-val" id="lg-cps">—</span><span class="li-pct" id="lg-cps-p"></span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#10b981"></span><span class="li-name" data-en="Target profit" data-bn="লক্ষ্য লাভ">Target profit</span><span class="li-val" id="lg-profit">—</span><span class="li-pct" id="lg-profit-p"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="built" data-en="Built for Facebook Ads marketers · Made with ❤️ by <span class='name-highlight'>ইয়াছির কনক</span>, Jamalpur, Bangladesh" data-bn="ফেসবুক অ্যাডস মার্কেটারদের জন্য তৈরি · ❤️ <span class='name-highlight'>ইয়াছির কনক</span>, জামালপুর, বাংলাদেশ কর্তৃক নির্মিত">Built for Facebook Ads marketers · Made with ❤️ by <span class="name-highlight">ইয়াছির কনক</span>, Jamalpur, Bangladesh</div>
+    <div>© 2025 Facebook Ads Profitability Calculator</div>
+  </footer>
+</div>
+
+<script>
+var CUR='৳', LANG='en';
+
+function toggleTheme(){
+  var html=document.documentElement;
+  html.setAttribute('data-theme', html.getAttribute('data-theme')==='dark'?'light':'dark');
+}
+
+function setCur(sym,code,btn){
+  CUR=sym;
+  document.querySelectorAll('.cur-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.sym').forEach(el=>el.textContent=sym);
+  calc();
+}
+
+function syncSlider(sliderId,inputId,valId){
+  var v=document.getElementById(sliderId).value;
+  document.getElementById(valId).textContent=v+'%';
+  document.getElementById(inputId).value=v;
+  calc();
+}
+
+function syncInput(inputId,sliderId,valId){
+  var v=document.getElementById(inputId).value;
+  document.getElementById(sliderId).value=v;
+  document.getElementById(valId).textContent=v+'%';
+  calc();
+}
+
+function setLang(lang){
+  LANG=lang;
+  document.body.classList.toggle('bangla',lang==='bn');
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.lang-btn').forEach(b=>{
+    if((lang==='bn'&&b.textContent==='বাংলা')||(lang==='en'&&b.textContent==='English')) b.classList.add('active');
+  });
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    el.innerHTML=lang==='bn'?el.getAttribute('data-bn'):el.getAttribute('data-en');
+  });
+  calc();
+}
+
+function fmt(n){ return CUR+Math.round(n).toLocaleString(); }
+
+function calc(){
+  var cogs=parseFloat(document.getElementById('cogs').value)||0;
+  var price=parseFloat(document.getElementById('price').value)||0;
+  var other=parseFloat(document.getElementById('other').value)||0;
+  var retRate=parseFloat(document.getElementById('returnRate').value)||0;
+  var targetMargin=parseFloat(document.getElementById('marginRate').value)||10;
+
+  var retFrac=retRate/100;
+  var effRev=price*(1-retFrac);
+  var retLoss=price*retFrac;
+  var costNoAds=cogs+other;
+  var netMarginNoAds=effRev>0?((effRev-costNoAds)/effRev)*100:0;
+  var targetProfit=effRev*(targetMargin/100);
+  var maxCPS=effRev-costNoAds-targetProfit;
+  var minROAS=maxCPS>0?price/maxCPS:0;
+
+  document.getElementById('maxCPS').textContent=maxCPS>0?fmt(maxCPS):'—';
+  document.getElementById('minROAS').textContent=minROAS>0?minROAS.toFixed(2)+'x':'—';
+  document.getElementById('effRev').textContent=fmt(effRev);
+  document.getElementById('retLoss').textContent='−'+fmt(retLoss);
+  document.getElementById('netMargin').textContent=netMarginNoAds.toFixed(1)+'%';
+
+  var retN=Math.round(retRate);
+  var infoEN='For every <strong>100 orders</strong>, <strong>'+retN+'</strong> return. Effective revenue/order: <strong>'+fmt(effRev)+'</strong> — Return loss absorbed: <strong>−'+fmt(retLoss)+'</strong> per order.';
+  var infoBN='প্রতি <strong>১০০ অর্ডারে</strong> <strong>'+retN+'টি</strong> ফেরত আসে। কার্যকর রেভিনিউ/অর্ডার: <strong>'+fmt(effRev)+'</strong> — রিটার্ন ক্ষতি: <strong>−'+fmt(retLoss)+'</strong> প্রতি অর্ডারে।';
+  document.getElementById('infoStrip').innerHTML=LANG==='bn'?infoBN:infoEN;
+
+  document.getElementById('bd-price').textContent=fmt(price);
+  document.getElementById('bd-ret').textContent='−'+fmt(retLoss);
+  document.getElementById('bd-eff').textContent=fmt(effRev);
+  document.getElementById('bd-cogs').textContent='−'+fmt(cogs);
+  document.getElementById('bd-other').textContent='−'+fmt(other);
+  document.getElementById('bd-cps').textContent=maxCPS>0?'−'+fmt(maxCPS):'—';
+  document.getElementById('bd-profit').textContent=targetProfit>0?fmt(targetProfit):'—';
+
+  // Donut
+  var total=price>0?price:1;
+  var C=2*Math.PI*60;
+  var segs=[
+    {id:'d-retloss',val:retLoss,lg:'lg-ret',lgp:'lg-ret-p'},
+    {id:'d-cogs',val:cogs,lg:'lg-cogs',lgp:'lg-cogs-p'},
+    {id:'d-other',val:other,lg:'lg-other',lgp:'lg-other-p'},
+    {id:'d-cps',val:Math.max(maxCPS,0),lg:'lg-cps',lgp:'lg-cps-p'},
+    {id:'d-profit',val:Math.max(targetProfit,0),lg:'lg-profit',lgp:'lg-profit-p'}
+  ];
+  var cum=0;
+  segs.forEach(function(seg){
+    var pct=Math.min(seg.val/total,1);
+    var dash=pct*C;
+    var el=document.getElementById(seg.id);
+    el.setAttribute('stroke-dasharray',dash+' '+(C-dash));
+    el.setAttribute('stroke-dashoffset',-(cum/total)*C);
+    cum+=seg.val;
+    document.getElementById(seg.lg).textContent=fmt(seg.val);
+    document.getElementById(seg.lgp).textContent='('+((seg.val/total)*100).toFixed(1)+'%)';
+  });
+
+  var profitPct=effRev>0?((targetProfit/effRev)*100).toFixed(1):'0';
+  document.getElementById('dc-pct').textContent=profitPct+'%';
+}
+
+calc();
+</script>
+</body>
+</html>
