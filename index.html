@@ -265,14 +265,14 @@ footer .name-highlight{color:var(--accent);font-weight:600;}
           <label data-en="Product Cost (COGS)" data-bn="পণ্যের কস্ট (COGS)">Product Cost (COGS)</label>
           <div class="input-wrap">
             <span class="input-prefix sym">৳</span>
-            <input type="number" id="cogs" value="500" min="0" oninput="calc()">
+            <input type="number" id="cogs" value="" placeholder="e.g. 500" min="0" oninput="calc()">
           </div>
         </div>
         <div class="field">
           <label data-en="Selling Price" data-bn="বিক্রয় মূল্য">Selling Price</label>
           <div class="input-wrap">
             <span class="input-prefix sym">৳</span>
-            <input type="number" id="price" value="1200" min="0" oninput="calc()">
+            <input type="number" id="price" value="" placeholder="e.g. 1200" min="0" oninput="calc()">
           </div>
         </div>
         <div class="field">
@@ -280,7 +280,7 @@ footer .name-highlight{color:var(--accent);font-weight:600;}
           <span class="hint" data-en="delivery, packaging, etc." data-bn="ডেলিভারি, প্যাকেজিং ইত্যাদি">delivery, packaging, etc.</span>
           <div class="input-wrap">
             <span class="input-prefix sym">৳</span>
-            <input type="number" id="other" value="80" min="0" oninput="calc()">
+            <input type="number" id="other" value="" placeholder="e.g. 80" min="0" oninput="calc()">
           </div>
         </div>
       </div>
@@ -294,11 +294,11 @@ footer .name-highlight{color:var(--accent);font-weight:600;}
           <span class="hint" data-en="% of orders returned or cancelled" data-bn="কত % অর্ডার ফেরত বা বাতিল হয়">% of orders returned or cancelled</span>
           <div class="slider-wrap">
             <div class="slider-row">
-              <input type="range" id="returnRate" min="0" max="60" value="15" step="1" oninput="syncSlider('returnRate','returnInput','rrv')">
-              <span class="slider-val" id="rrv">15%</span>
+              <input type="range" id="returnRate" min="0" max="60" value="0" step="1" oninput="syncSlider('returnRate','returnInput','rrv')">
+              <span class="slider-val" id="rrv">0%</span>
             </div>
             <div class="input-wrap">
-              <input type="number" id="returnInput" value="15" min="0" max="100" oninput="syncInput('returnInput','returnRate','rrv')">
+              <input type="number" id="returnInput" value="" min="0" max="100" oninput="syncInput('returnInput','returnRate','rrv')">
               <span class="input-suffix">%</span>
             </div>
           </div>
@@ -308,11 +308,11 @@ footer .name-highlight{color:var(--accent);font-weight:600;}
           <span class="hint" data-en="% of effective revenue you want as profit" data-bn="কার্যকর রেভিনিউর কত % লাভ চান">% of effective revenue you want as profit</span>
           <div class="slider-wrap">
             <div class="slider-row">
-              <input type="range" id="marginRate" min="1" max="60" value="10" step="1" oninput="syncSlider('marginRate','marginInput','mrv')">
-              <span class="slider-val" id="mrv">10%</span>
+              <input type="range" id="marginRate" min="1" max="60" value="1" step="1" oninput="syncSlider('marginRate','marginInput','mrv')">
+              <span class="slider-val" id="mrv">1%</span>
             </div>
             <div class="input-wrap">
-              <input type="number" id="marginInput" value="10" min="1" max="100" oninput="syncInput('marginInput','marginRate','mrv')">
+              <input type="number" id="marginInput" value="" min="1" max="100" oninput="syncInput('marginInput','marginRate','mrv')">
               <span class="input-suffix">%</span>
             </div>
           </div>
@@ -442,8 +442,8 @@ function syncSlider(sliderId,inputId,valId){
 
 function syncInput(inputId,sliderId,valId){
   var v=document.getElementById(inputId).value;
-  document.getElementById(sliderId).value=v;
-  document.getElementById(valId).textContent=v+'%';
+  document.getElementById(sliderId).value=v||0;
+  document.getElementById(valId).textContent=(v||0)+'%';
   calc();
 }
 
@@ -462,12 +462,39 @@ function setLang(lang){
 
 function fmt(n){ return CUR+Math.round(n).toLocaleString(); }
 
+function setEmpty(){
+  ['maxCPS','minROAS','effRev','retLoss','netMargin',
+   'bd-price','bd-ret','bd-eff','bd-cogs','bd-other','bd-cps','bd-profit',
+   'dc-pct','lg-ret','lg-cogs','lg-other','lg-cps','lg-profit'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) el.textContent='—';
+  });
+  ['lg-ret-p','lg-cogs-p','lg-other-p','lg-cps-p','lg-profit-p'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) el.textContent='';
+  });
+  var infoEl=document.getElementById('infoStrip');
+  if(infoEl) infoEl.innerHTML=LANG==='bn'
+    ? '⬆ উপরে আপনার পণ্যের তথ্য দিন — ফলাফল এখানে দেখাবে।'
+    : '⬆ Enter your product details above — results will appear here.';
+  var C=2*Math.PI*60;
+  ['d-retloss','d-cogs','d-other','d-cps','d-profit'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){ el.setAttribute('stroke-dasharray','0 '+C); el.setAttribute('stroke-dashoffset','0'); }
+  });
+}
+
 function calc(){
+  var priceRaw=document.getElementById('price').value;
+  if(priceRaw===''){ setEmpty(); return; }
+
   var cogs=parseFloat(document.getElementById('cogs').value)||0;
-  var price=parseFloat(document.getElementById('price').value)||0;
+  var price=parseFloat(priceRaw)||0;
   var other=parseFloat(document.getElementById('other').value)||0;
   var retRate=parseFloat(document.getElementById('returnRate').value)||0;
-  var targetMargin=parseFloat(document.getElementById('marginRate').value)||10;
+  var targetMargin=parseFloat(document.getElementById('marginRate').value)||0;
+
+  if(price<=0){ setEmpty(); return; }
 
   var retFrac=retRate/100;
   var effRev=price*(1-retFrac);
@@ -497,7 +524,6 @@ function calc(){
   document.getElementById('bd-cps').textContent=maxCPS>0?'−'+fmt(maxCPS):'—';
   document.getElementById('bd-profit').textContent=targetProfit>0?fmt(targetProfit):'—';
 
-  // Donut
   var total=price>0?price:1;
   var C=2*Math.PI*60;
   var segs=[
@@ -523,7 +549,7 @@ function calc(){
   document.getElementById('dc-pct').textContent=profitPct+'%';
 }
 
-calc();
+setEmpty();
 </script>
 </body>
 </html>
